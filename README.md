@@ -32,3 +32,15 @@ Now that your venv is active, you can install packages like:
 pip install flask
 ✅ 5. Deactivate when done
 deactivate
+
+
+
+run in production:
+
+for windows:
+
+waitress-serve --port=8080 wsgi:app
+
+for lunux:
+
+gunicorn -w 4 -b 0.0.0.0:8000 wsgi:app
