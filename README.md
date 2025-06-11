@@ -44,3 +44,18 @@ waitress-serve --port=8080 wsgi:app
 for lunux:
 
 gunicorn -w 4 -b 0.0.0.0:8000 wsgi:app
+
+
+How to use:
+
+Push your code to GitHub.
+
+Go to https://render.com, click "New Web Service", and connect your repo.
+
+Set:
+
+Build Command: pip install -r requirements.txt
+
+Start Command: gunicorn wsgi:app
+
+Environment: Python 3.x

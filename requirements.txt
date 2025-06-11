@@ -3,5 +3,6 @@ flask_sqlalchemy
 weasyprint
 reportlab
 matplotlib
+pandas
 waitress
 gunicorn
