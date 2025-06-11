@@ -2,7 +2,7 @@
   {% for title, raw_value, display_value, color, tooltip, icon in [
     ('Total Records', records|length, records|length, 'primary', 'All filtered meter records', 'bi-clipboard-data'),
     ('Avg. Efficiency (kWh/ZMW)', avg_efficiency, "%.2f"|format(avg_efficiency), 'secondary', 'Energy received per ZMW spent', 'bi-lightning-charge'),
-    ('Total Units', total_units, "{:,}".format(total_units), 'success', 'Total kWh received', 'bi-battery-full'),
+    ('Total Units', total_units, "{:,.2f}".format(total_units), 'success', 'Total kWh received', 'bi-battery-full'),
     ('Total Token (ZMW)', total_tokens, "{:,.2f}".format(total_tokens), 'info', 'Total token value in ZMW', 'bi-cash-stack'),
     ('Anomalies', anomalies|length, anomalies|length, 'warning', 'Number of flagged anomalies', 'bi-exclamation-triangle')
   ] %}
