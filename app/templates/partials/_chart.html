@@ -1,0 +1,133 @@
+<div class="card shadow-sm mb-5">
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <strong>📈 Usage Trends (kWh & ZMW)</strong>
+    <button onclick="downloadChart()" class="btn btn-sm btn-outline-light">📤 Export Chart</button>
+  </div>
+  <div class="card-body">
+    {% if selected_meter %}
+    <p class="text-muted">Showing data for <strong>Meter {{ selected_meter }}</strong></p>
+    {% else %}
+    <p class="text-muted">Showing data for <strong>all meters</strong></p>
+    {% endif %}
+    <canvas id="usageChart" style="height: 350px;"></canvas>
+  </div>
+</div>
+
+
+
+<div class="row">
+  <div class="col-md-6">
+    <canvas id="unitsChart"></canvas>
+  </div>
+  <div class="col-md-6">
+    <canvas id="tokensChart"></canvas>
+  </div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const usageChart = new Chart(document.getElementById('usageChart'), {
+  type: 'line',
+  data: {
+    labels: {{ dates|tojson }},
+    datasets: [
+      {
+        label: 'Units (kWh)',
+        data: {{ units|tojson }},
+        borderColor: '#198754',
+        backgroundColor: 'rgba(25, 135, 84, 0.2)',
+        fill: true,
+        tension: 0.3
+      },
+      {
+        label: 'Token (ZMW)',
+        data: {{ tokens|tojson }},
+        borderColor: '#0d6efd',
+        backgroundColor: 'rgba(13, 110, 253, 0.2)',
+        fill: true,
+        tension: 0.3
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return ` ${context.dataset.label}: ${context.parsed.y.toFixed(2)}`;
+          }
+        }
+      },
+      legend: { display: true }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Amount' }
+      },
+      x: {
+        title: { display: true, text: 'Date' }
+      }
+    }
+  }
+});
+
+function downloadChart() {
+  const link = document.createElement('a');
+  link.download = 'usage_chart.png';
+  link.href = usageChart.toBase64Image();
+  link.click();
+}
+
+
+
+
+const unitsCtx = document.getElementById('unitsChart').getContext('2d');
+const tokensCtx = document.getElementById('tokensChart').getContext('2d');
+
+const unitsChart = new Chart(unitsCtx, {
+  type: 'bar',
+  data: {
+    labels: {{ dates|tojson }},
+    datasets: [{
+      label: 'Units (kWh)',
+      data: {{ units|tojson }},
+      backgroundColor: 'rgba(25, 135, 84, 0.7)'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Units Consumed Over Time'
+      }
+    }
+  }
+});
+
+const tokensChart = new Chart(tokensCtx, {
+  type: 'bar',
+  data: {
+    labels: {{ dates|tojson }},
+    datasets: [{
+      label: 'Tokens (ZMW)',
+      data: {{ tokens|tojson }},
+      backgroundColor: 'rgba(13, 110, 253, 0.7)'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Tokens Purchased Over Time'
+      }
+    }
+  }
+});
+
+</script>

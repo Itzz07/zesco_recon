@@ -1,0 +1,26 @@
+<div class="card shadow-sm my-4">
+    <div class="card-header bg-info text-white"><strong>📊 Multi-Meter Summary</strong></div>
+    <div class="card-body table-responsive">
+      <table class="table table-bordered table-striped align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Meter No.</th>
+            <th>Total Tokens (ZMW)</th>
+            <th>Total Units (kWh)</th>
+            <th>Upload Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for meter, data in meter_breakdown.items() %}
+          <tr>
+            <td>{{ meter }}</td>
+            <td>{{ "%.2f"|format(data.tokens) }}</td>
+            <td>{{ "%.2f"|format(data.units) }}</td>
+            <td>{{ data.count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  

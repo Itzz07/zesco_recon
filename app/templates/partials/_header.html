@@ -1,0 +1,24 @@
+<!-- Dashboard Header -->
+<div class="text-center mb-4">
+  <h2 class="fw-bold">🔌 ZESCO Energy Dashboard</h2>
+  <p class="text-muted">Visualizing prepaid token usage and energy received</p>
+</div>
+
+<!-- Top Actions -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <!-- Download buttons -->
+  <div>
+    <a href="{{ url_for('main.export_csv') }}" class="btn btn-outline-primary me-2" title="Export data as CSV">
+      📥 Download CSV
+    </a>
+    <a href="{{ url_for('main.export_pdf') }}" class="btn btn-outline-danger" title="Export report as PDF">
+      📄 Download PDF
+    </a>
+  </div>
+
+  <!-- Currency toggle -->
+  <div class="form-check form-switch">
+    <input class="form-check-input" type="checkbox" id="currencyToggle">
+    <label class="form-check-label fw-semibold" for="currencyToggle">USD</label>
+  </div>
+</div>

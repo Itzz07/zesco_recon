@@ -1,0 +1,176 @@
+ {% if anomalies %}
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+      <button class="btn btn-outline-warning" type="button" data-bs-toggle="collapse" data-bs-target="#anomalyTable">
+        ⚠️ Toggle Anomaly Alerts <span class="badge bg-danger">{{ anomalies|length }}</span>
+      </button>
+      <div>
+        <a href="{{ url_for('main.export_anomalies_csv') }}" class="btn btn-outline-primary btn-sm">📥 CSV</a>
+        <a href="{{ url_for('main.export_anomalies_pdf') }}" class="btn btn-outline-danger btn-sm">📄 PDF</a>
+      </div>
+    </div>
+    
+    <div class="collapse show" id="anomalyTable">
+      <div class="alert alert-warning mt-2">
+        <h5>Anomaly Alerts Detected</h5>
+
+        <!-- Donut chart container -->
+        <div class="mb-4" style="max-width: 400px; margin: auto;">
+          <canvas id="anomalyChart"></canvas>
+        </div>
+        
+        <!-- Filter dropdown -->
+        <div class="mb-2">
+          <label for="reasonFilter" class="form-label">Filter by Reason:</label>
+          <select id="reasonFilter" class="form-select form-select-sm">
+            <option value="">All</option>
+            {% for reason in anomalies | map(attribute='reason') | unique | list %}
+            <option value="{{ reason }}">{{ reason }}</option>
+            {% endfor %}
+          </select>
+        </div>
+    
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered" id="anomalyTableBody">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Meter No.</th>
+                <th>Token (ZMW)</th>
+                <th>Units Received</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody id="anomaly-rows">
+              {% for a in anomalies %}
+              {% set severity_icon = '🟢' %}
+              {% set severity_class = 'table-info' %}
+              {% if 'spike' in a.reason or 'zero' in a.reason or 'duplicate' in a.reason %}
+                {% set severity_icon = '🔴' %}
+                {% set severity_class = 'table-danger' %}
+              {% elif 'low' in a.reason or 'irregular' in a.reason or 'drop' in a.reason %}
+                {% set severity_icon = '🟠' %}
+                {% set severity_class = 'table-warning' %}
+              {% endif %}
+              <tr class="{{ severity_class }}" data-reason="{{ a.reason }}">
+                <td>{{ a.date }}</td>
+                <td>{{ a.meter_no }}</td>
+                <td>{{ a.token_amount }}</td>
+                <td>{{ a.units_received }}</td>
+                <td><span title="{{ a.reason }}">{{ severity_icon }} {{ a.reason[:40] }}{% if a.reason|length > 40 %}...{% endif %}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+    
+        <!-- Pagination controls -->
+        <nav>
+          <ul class="pagination justify-content-center mt-3" id="anomaly-pagination"></ul>
+        </nav>
+          <li>🔴 Critical for spikes, zero units, duplicated tokens</li>
+          <li>🟠 Warning for low efficiency or irregular trends</li>
+          <li>🟢 Info for minor or informational issues (if applicable)</li>
+      </div>
+    </div>
+    
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const rows = document.querySelectorAll('#anomaly-rows tr');
+  const pagination = document.getElementById('anomaly-pagination');
+  const filter = document.getElementById('reasonFilter');
+  const rowsPerPage = 5;
+  let currentPage = 1;
+
+  // Prepare anomaly reason counts for chart
+  const anomalies = {{ anomalies | tojson }};
+  const reasonCounts = {};
+  anomalies.forEach(a => {
+    reasonCounts[a.reason] = (reasonCounts[a.reason] || 0) + 1;
+  });
+
+  // Setup Chart.js donut chart
+  const ctx = document.getElementById('anomalyChart').getContext('2d');
+  const anomalyChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(reasonCounts),
+      datasets: [{
+        data: Object.values(reasonCounts),
+        backgroundColor: [
+          '#dc3545', // red
+          '#fd7e14', // orange
+          '#0d6efd', // blue
+          '#198754', // green
+          '#6c757d'  // gray
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.parsed || 0;
+              return `${label}: ${value} anomaly${value !== 1 ? 'ies' : ''}`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  function getFilteredRows() {
+    const selectedReason = filter.value.trim();
+    return Array.from(rows).filter(row =>
+      selectedReason === '' || row.dataset.reason === selectedReason
+    );
+  }
+
+  function displayRows(page) {
+    const filtered = getFilteredRows();
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    rows.forEach(row => row.style.display = 'none');
+    filtered.slice(start, end).forEach(row => row.style.display = '');
+  }
+
+  function setupPagination() {
+    const filtered = getFilteredRows();
+    const pageCount = Math.ceil(filtered.length / rowsPerPage);
+    pagination.innerHTML = '';
+
+    for (let i = 1; i <= pageCount; i++) {
+      const li = document.createElement('li');
+      li.className = 'page-item' + (i === currentPage ? ' active' : '');
+      li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+      li.addEventListener('click', function (e) {
+        e.preventDefault();
+        currentPage = i;
+        displayRows(currentPage);
+        setupPagination();
+      });
+      pagination.appendChild(li);
+    }
+  }
+
+  filter.addEventListener('change', () => {
+    currentPage = 1;
+    displayRows(currentPage);
+    setupPagination();
+  });
+
+  displayRows(currentPage);
+  setupPagination();
+});
+</script>
+{% else %}
+<p class="text-success mt-4">No anomalies detected.</p>
+{% endif %}

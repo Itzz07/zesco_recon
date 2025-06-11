@@ -1,0 +1,112 @@
+<!-- Search Bar -->
+<div class="input-group my-3">
+  <span class="input-group-text">🔎</span>
+  <input type="text" id="searchInput" class="form-control" placeholder="Search by meter number...">
+</div>
+
+<!-- Table Section -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-secondary text-white">
+    <strong>📋 Latest Uploads</strong>
+  </div>
+  <div class="card-body table-responsive">
+    {% if records %}
+     <table class="table table-hover table-bordered align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Date</th>
+          <th>Token (ZMW)</th>
+          <th>Units (kWh)</th>
+          <th>Meter No.</th>
+        </tr>
+      </thead>
+      <tbody id="recordTable">
+        {% for record in records %}
+        <tr>
+          <td>{{ record.date }}</td>
+          <td>{{ record.token_amount }}</td>
+          <td>{{ record.units_received }}</td>
+          <td>{{ record.meter_no }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-center text-muted">No records uploaded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="text-center text-muted p-5">
+        <i class="bi bi-bar-chart" style="font-size: 2rem;"></i>
+        <p>No usage data to display for this meter.</p>
+      </div>
+    {% endif %}
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <div>
+        <label for="rowsPerPage">Show</label>
+        <select id="rowsPerPage" class="form-select d-inline-block w-auto mx-2">
+          <option value="10" selected>10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+        <label>entries</label>
+      </div>
+      <nav><ul class="pagination pagination-sm mb-0" id="paginationControls"></ul></nav>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('searchInput').addEventListener('input', function () {
+  const filter = this.value.toLowerCase();
+  document.querySelectorAll('#recordTable tr').forEach(row => {
+    const text = row.innerText.toLowerCase();
+    row.style.display = text.includes(filter) ? '' : 'none';
+  });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  const table = document.getElementById("recordTable");
+  const rows = Array.from(table.querySelectorAll("tr"));
+  const pagination = document.getElementById("paginationControls");
+  const rowsPerPageSelect = document.getElementById("rowsPerPage");
+
+  let currentPage = 1;
+  let rowsPerPage = parseInt(rowsPerPageSelect.value);
+
+  function displayRows() {
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    rows.forEach((row, index) => {
+      row.style.display = index >= start && index < end ? "" : "none";
+    });
+  }
+
+  function setupPagination() {
+    pagination.innerHTML = "";
+    const totalPages = Math.ceil(rows.length / rowsPerPage);
+    for (let i = 1; i <= totalPages; i++) {
+      const li = document.createElement("li");
+      li.className = "page-item" + (i === currentPage ? " active" : "");
+      li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+      li.addEventListener("click", function (e) {
+        e.preventDefault();
+        currentPage = i;
+        displayRows();
+        setupPagination();
+      });
+      pagination.appendChild(li);
+    }
+  }
+
+  rowsPerPageSelect.addEventListener("change", () => {
+    rowsPerPage = parseInt(rowsPerPageSelect.value);
+    currentPage = 1;
+    displayRows();
+    setupPagination();
+  });
+
+  displayRows();
+  setupPagination();
+});
+</script>

@@ -1,0 +1,20 @@
+<div class="row g-3 mb-4 text-center">
+  {% for title, raw_value, display_value, color, tooltip, icon in [
+    ('Total Records', records|length, records|length, 'primary', 'All filtered meter records', 'bi-clipboard-data'),
+    ('Avg. Efficiency (kWh/ZMW)', avg_efficiency, "%.2f"|format(avg_efficiency), 'secondary', 'Energy received per ZMW spent', 'bi-lightning-charge'),
+    ('Total Units', total_units, "{:,}".format(total_units), 'success', 'Total kWh received', 'bi-battery-full'),
+    ('Total Token (ZMW)', total_tokens, "{:,.2f}".format(total_tokens), 'info', 'Total token value in ZMW', 'bi-cash-stack'),
+    ('Anomalies', anomalies|length, anomalies|length, 'warning', 'Number of flagged anomalies', 'bi-exclamation-triangle')
+  ] %}
+  <div class="col-6 col-md-3">
+    <div class="card text-white bg-{{ color }} shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="card-title fw-semibold d-flex justify-content-center align-items-center" data-bs-toggle="tooltip" title="{{ tooltip }}">
+          <i class="bi {{ icon }} me-2"></i> {{ title }}
+        </h6>
+        <h3 class="card-text countup" data-target="{{ raw_value }}" data-format="{{ display_value }}">{{ display_value }}</h3>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
